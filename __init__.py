@@ -86,7 +86,9 @@ AWS_SERVICES_LIST = [
     { "name": "AWS CloudWatch Log Insights", "url": "https://{0}.console.aws.amazon.com/cloudwatch/home?region={0}#logsV2:logs-insights".format(AWS_REGION) },
     { "name": "AWS EventBridge", "url": "https://{0}.console.aws.amazon.com/events/home?region={0}#/".format(AWS_REGION) },
     { "name": "AWS EventBridge Rules", "url": "https://{0}.console.aws.amazon.com/events/home?region={0}#/rules".format(AWS_REGION) },
-    { "name": "AWS EventBridge Schedules", "url": "https://{0}.console.aws.amazon.com/scheduler/home?region={0}#schedules".format(AWS_REGION) }
+    { "name": "AWS EventBridge Schedules", "url": "https://{0}.console.aws.amazon.com/scheduler/home?region={0}#schedules".format(AWS_REGION) },
+    # documentation
+    { "name": "AWS CLI v2 reference", "url": "https://awscli.amazonaws.com/v2/documentation/api/latest/index.html" }
 ]
 
 class Plugin(TriggerQueryHandler):

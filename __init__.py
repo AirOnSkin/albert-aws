@@ -10,7 +10,7 @@ import json
 from albert import *
 
 md_iid = '1.0'
-md_version = "0.1"
+md_version = "1.0"
 md_name = "AWS services"
 md_description = "Open AWS services in the browser"
 md_license = "GPL-3.0"
@@ -25,6 +25,7 @@ AWS_SERVICES_LIST = [
     { "name": "AWS Support Center", "url": "https://support.console.aws.amazon.com/support/home?region={0}#/case/history".format(AWS_REGION) },
     { "name": "AWS Cost Management", "url": "https://us-east-1.console.aws.amazon.com/cost-management/home#/dashboard" },
     { "name": "AWS Trusted Advisor", "url": "https://us-east-1.console.aws.amazon.com/trustedadvisor/home#/dashboard" },
+    { "name": "AWS Systems Manager", "url": "https://{0}.console.aws.amazon.com/systems-manager/home?region={0}".format(AWS_REGION) },
     # identity management
     { "name": "AWS IAM", "url": "https://us-east-1.console.aws.amazon.com/iamv2/home#/home" },
     { "name": "AWS IAM Roles", "url": "https://us-east-1.console.aws.amazon.com/iamv2/home#/roles" },
@@ -112,7 +113,6 @@ class Plugin(TriggerQueryHandler):
 
   def handleTriggerQuery(self, query):
 
-    # Load the AWS services list
     aws_services_list = self.load_services()
 
     query_stripped = query.string.strip().lower()
@@ -120,7 +120,7 @@ class Plugin(TriggerQueryHandler):
     if query_stripped:
 
       if not aws_services_list:
-          return []
+        return []
 
       results = []
       for service in aws_services_list:
@@ -135,11 +135,11 @@ class Plugin(TriggerQueryHandler):
         query.add(results)
       else:
         query.add(Item(id=md_id,
-                        text="No service matching search string",
-                        icon=self.icon))
+                       text="No service matching search string",
+                       icon=self.icon))
 
     else:
       query.add(Item(id=md_id,
-                      icon=self.icon,
-                      text="...",
-                      subtext="Search for an AWS service name"))
+                     icon=self.icon,
+                     text="...",
+                     subtext="Search for an AWS service name"))

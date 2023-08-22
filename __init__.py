@@ -8,9 +8,10 @@ Trigger with 'aws '.
 import os
 import json
 from albert import *
+from pathlib import Path
 
-md_iid = '1.0'
-md_version = "1.0"
+md_iid = '2.0'
+md_version = "1.1"
 md_name = "AWS services"
 md_description = "Open AWS services in the browser"
 md_license = "GPL-3.0"
@@ -92,21 +93,16 @@ AWS_SERVICES_LIST = [
     { "name": "AWS CLI v2 reference", "url": "https://awscli.amazonaws.com/v2/documentation/api/latest/index.html" }
 ]
 
-class Plugin(TriggerQueryHandler):
+class Plugin(PluginInstance, TriggerQueryHandler):
 
-  icon = [os.path.dirname(__file__) + "/plugin.svg"]
-
-  def id(self):
-    return md_id
-
-  def name(self):
-    return md_name
-
-  def description(self):
-    return md_description
-
-  def defaultTrigger(self):
-    return "aws "
+  def __init__(self):
+    TriggerQueryHandler.__init__(self,
+                                 id=md_id,
+                                 name=md_name,
+                                 description=md_description,
+                                 defaultTrigger='aws ')
+    PluginInstance.__init__(self, extensions=[self])
+    self.iconUrls = [f"file:{Path(__file__).parent}/plugin.svg"]
 
   def load_services(self):
     return AWS_SERVICES_LIST
@@ -125,21 +121,21 @@ class Plugin(TriggerQueryHandler):
       results = []
       for service in aws_services_list:
         if query_stripped in service['name'].lower():
-          results.append(Item(id=md_id,
+          results.append(StandardItem(id=md_id,
                               text=service["name"],
-                              icon=self.icon,
+                              iconUrls=self.iconUrls,
                               subtext=service["url"],
                               actions=[Action("open", "Open service URL", lambda u=service["url"]: openUrl(u))]))
 
       if results:
         query.add(results)
       else:
-        query.add(Item(id=md_id,
+        query.add(StandardItem(id=md_id,
                        text="No service matching search string",
-                       icon=self.icon))
+                       iconUrls=self.iconUrls))
 
     else:
-      query.add(Item(id=md_id,
-                     icon=self.icon,
+      query.add(StandardItem(id=md_id,
+                     iconUrls=self.iconUrls,
                      text="...",
                      subtext="Search for an AWS service name"))

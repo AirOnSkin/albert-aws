@@ -54,6 +54,7 @@ AWS_SERVICES_LIST = [
     { "name": "AWS ECS", "url": "https://{0}.console.aws.amazon.com/ecs/v2/clusters?region={0}".format(AWS_REGION) },
     { "name": "AWS Lambda", "url": "https://{0}.console.aws.amazon.com/lambda/home?region={0}#/functions".format(AWS_REGION) },
     { "name": "AWS Step Functions", "url": "https://{0}.console.aws.amazon.com/states/home?region={0}#/statemachines".format(AWS_REGION) },
+    { "name": "AWS CloudMap", "url": "https://{0}.console.aws.amazon.com/cloudmap/home/namespaces?region={0}".format(AWS_REGION) },
     # file management
     { "name": "AWS S3", "url": "https://s3.console.aws.amazon.com/s3/buckets?region={0}".format(AWS_REGION) },
     { "name": "AWS EFS", "url": "https://{0}.console.aws.amazon.com/efs/home?region={0}#/file-systems".format(AWS_REGION) },

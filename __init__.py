@@ -16,7 +16,7 @@ md_name = "AWS services"
 md_description = "Open AWS services in the browser"
 md_license = "GPL-3.0"
 md_url = "https://github.com/aironskin/albert-aws"
-md_maintainers = "@aironskin"
+md_authors = "@aironskin"
 
 AWS_REGION = "eu-west-1"
 AWS_SERVICES_LIST = [
@@ -104,7 +104,7 @@ class Plugin(PluginInstance, TriggerQueryHandler):
                                      name=md_name,
                                      description=md_description,
                                      defaultTrigger='aws ')
-        PluginInstance.__init__(self, extensions=[self])
+        PluginInstance.__init__(self)
         self.iconUrls = [f"file:{Path(__file__).parent}/plugin.svg"]
 
     def load_services(self):

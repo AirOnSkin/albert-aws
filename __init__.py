@@ -7,17 +7,19 @@ Trigger with 'aws '.
 
 from albert import Action, GeneratorQueryHandler, Icon, PluginInstance, StandardItem, openUrl
 from pathlib import Path
+from rapidfuzz import fuzz
 from urllib.parse import urlencode, urlsplit, urlunsplit
 import json
 import re
 
 md_iid = "5.0"
-md_version = "2.0"
+md_version = "2.1"
 md_name = "AWS services"
 md_description = "Open AWS services in the browser"
 md_license = "GPL-3.0"
 md_url = "https://github.com/aironskin/albert-aws"
 md_authors = ["@aironskin"]
+md_lib_dependencies = ["rapidfuzz"]
 
 DEFAULT_AWS_REGION = "eu-west-1"
 AWS_URL_LIST = [
@@ -210,6 +212,23 @@ class Plugin(PluginInstance, GeneratorQueryHandler):
             warning("Could not load accounts.json. Check the local account configuration.")
             return []
 
+    @staticmethod
+    def search_score(query, name):
+        name = name.lower()
+        if query in name:
+            return 200.0
+        query_tokens = re.findall(r"\w+", query)
+        name_tokens = re.findall(r"\w+", name)
+        if not query_tokens or not name_tokens:
+            return None
+        # Require every query token, so 'b2c prod' cannot match 'b2b stage'
+        # merely because both names contain the common 'AWS Account' prefix.
+        scores = [max(100.0 if token.startswith(term) else fuzz.ratio(term, token)
+                      for token in name_tokens) for term in query_tokens]
+        if min(scores) < 80:
+            return None
+        return sum(scores) / len(scores)
+
     def items(self, context):
         if not context.isValid:
             return
@@ -222,12 +241,20 @@ class Plugin(PluginInstance, GeneratorQueryHandler):
         query_stripped = context.query.strip().lower()
 
         if query_stripped:
-            results = []
+            matches = []
             for service in aws_services_list:
                 if not context.isValid:
                     return
-                if query_stripped in service['name'].lower():
-                    results.append(StandardItem(id=f"{self.id()}/{service['url']}",
+                score = self.search_score(query_stripped, service["name"])
+                if score is not None:
+                    matches.append((score, service))
+
+            matches.sort(key=lambda match: match[0], reverse=True)
+            results = []
+            for _, service in matches:
+                if not context.isValid:
+                    return
+                results.append(StandardItem(id=f"{self.id()}/{service['url']}",
                                                 text=service["name"],
                                                 icon_factory=self.icon,
                                                 subtext=service["url"],

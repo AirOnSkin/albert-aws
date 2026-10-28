@@ -13,6 +13,13 @@ Use `{0}` in regional URL templates for the configured region.
 
 Trigger it with `aws `.
 
+The plugin requires the Python package `rapidfuzz`, also declared in its Albert
+dependency metadata. Search matches shortcut names, allowing skipped words,
+reordered words and minor typos. For example, `aws account dev` finds an
+account named “Core B2C prod”, and `aws cloudwath alarms` finds CloudWatch Alarms.
+Every search term must match; contiguous matches appear before fuzzy matches.
+Select a result and press Enter to open its URL.
+
 ## Private account shortcuts
 
 Copy [accounts.example.json](accounts.example.json) to [accounts.json](accounts.json)

@@ -228,7 +228,8 @@ class PluginTests(unittest.TestCase):
     def test_fictional_account_shortcuts_preserve_names_ids_and_readonly_urls(self):
         config = self.account_config()
         self.write_accounts(config)
-        items = self.items("AWS Account:")
+        items = [item for item in self.items("AWS Account:")
+             if item.text.startswith("AWS Account:")]
         self.assertEqual(len(items), 2)
         self.assertEqual([item.text for item in items],
                          [f"AWS Account: {account['name']}"
@@ -265,12 +266,14 @@ class PluginTests(unittest.TestCase):
     def test_account_json_changes_reload_without_restarting(self):
         config = self.account_config()
         self.write_accounts(config)
-        self.assertEqual(len(self.items("AWS Account:")), 2)
+        self.assertEqual(sum(item.text.startswith("AWS Account:")
+                     for item in self.items("AWS Account:")), 2)
         config["accounts"] = [{"name": "Example replacement", "id": "000000000002"}]
         config["permission_set"] = "ExampleReader"
         config["portal_url"] = "https://replacement.example.com/start"
         self.write_accounts(config)
-        item, = self.items("AWS Account:")
+        item, = [item for item in self.items("AWS Account:")
+             if item.text.startswith("AWS Account:")]
         self.assertEqual(item.text, "AWS Account: Example replacement")
         self.assertEqual(item.subtext,
                          "https://replacement.example.com/start/#/console?"
@@ -408,6 +411,46 @@ class PluginTests(unittest.TestCase):
             {"name": "AWS Account Portal", "url": "https://example.awsapps.com/start/#/"},
         ])
         self.module.warning.assert_not_called()
+
+    def test_fuzzy_account_search_skips_words_and_distinguishes_accounts(self):
+        config = self.account_config()
+        config["accounts"] = [
+            {"name": "Example B2B prod", "id": "000000000001"},
+            {"name": "Example B2C stage", "id": "000000000002"},
+            {"name": "Example B2C prod", "id": "000000000003"},
+        ]
+        self.write_accounts(config)
+        for query in ("account b2c prod", "prod b2c account", "acount b2c prod",
+                      "  ACCOUNT   B2C  PROD  "):
+            with self.subTest(query=query):
+                item, = self.items(query)
+                self.assertEqual(item.text, "AWS Account: Example B2C prod")
+                item.actions[0].callable()
+                self.module.openUrl.assert_called_with(
+                    "https://example.awsapps.com/start/#/console?"
+                    "account_id=000000000003&role_name=readonly")
+
+    def test_fuzzy_service_search_handles_typos_and_reordered_words(self):
+        for query in ("cloudwath alarms", "alarms cloudwatch"):
+            with self.subTest(query=query):
+                item, = self.items(query)
+                self.assertEqual(item.text, "AWS CloudWatch Alarms")
+
+    def test_contiguous_matches_rank_before_fuzzy_matches(self):
+        services = [
+            {"name": "AWS Extra CloudWatch Alarms", "url": "https://example.com/fuzzy"},
+            {"name": "AWS CloudWatch Alarms", "url": "https://example.com/exact"},
+        ]
+        with patch.object(self.plugin, "load_services", return_value=services):
+            items = self.items("aws cloudwatch alarms")
+        self.assertEqual([item.subtext for item in items],
+                         ["https://example.com/exact", "https://example.com/fuzzy"])
+
+    def test_fuzzy_search_requires_all_terms_and_handles_punctuation_only(self):
+        for query in ("aws account nonexistent", "!!!"):
+            with self.subTest(query=query):
+                item, = self.items(query)
+                self.assertEqual(item.id, "aws/no-matches")
 
     def test_no_matches_show_status_item(self):
         item, = self.items("no-such-service")
